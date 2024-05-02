@@ -2,6 +2,7 @@
 
 SoftbodyMesh::SoftbodyMesh(const Mesh &mesh) {
   // Create point masses
+  pointMasses.reserve(mesh._vertices.size());
   for (const auto &vertex : mesh._vertices) {
     PointMass pointMass;
     pointMass.position = vertex.position;
@@ -13,6 +14,7 @@ SoftbodyMesh::SoftbodyMesh(const Mesh &mesh) {
   }
 
   // Create faces
+  faces.reserve(mesh._indices.size() / 3);
   for (unsigned int i = 0; i < mesh._indices.size(); i += 3) {
     SoftbodyFace face;
     face.pointMassIndices[0] = mesh._indices[i];
@@ -25,8 +27,8 @@ SoftbodyMesh::SoftbodyMesh(const Mesh &mesh) {
   // Create edges
   for (unsigned int i = 0; i < faces.size(); i++) {
     for (unsigned int j = 0; j < 3; j++) {
-      unsigned int a = faces[i].pointMassIndices[j];
-      unsigned int b = faces[i].pointMassIndices[(j + 1) % 3];
+      const unsigned int a = faces[i].pointMassIndices[j];
+      const unsigned int b = faces[i].pointMassIndices[(j + 1) % 3];
 
       // Check if the edge already exists
       bool edgeExists = false;
@@ -99,8 +101,8 @@ SoftbodyMesh::SoftbodyMesh(const Mesh &mesh) {
 
   // Calculate the rest span length of the faces
   for (auto &edge : edges) {
-    unsigned int i0 = edge.pointMassIndices[0];
-    unsigned int i1 = edge.pointMassIndices[1];
+    const unsigned int i0 = edge.pointMassIndices[0];
+    const unsigned int i1 = edge.pointMassIndices[1];
     unsigned int iL = 0;
     for (unsigned int i = 0; i < 3; i++) {
       unsigned int pointIdx = faces[edge.faceIndices[0]].pointMassIndices[i];
@@ -131,15 +133,15 @@ SoftbodyMesh::SoftbodyMesh(const Mesh &mesh) {
   // Calculate the volume of the mesh
   restVolume = 0.0f;
   for (const auto &face : faces) {
-    glm::vec3 a = pointMasses[face.pointMassIndices[0]].position;
-    glm::vec3 b = pointMasses[face.pointMassIndices[1]].position;
-    glm::vec3 c = pointMasses[face.pointMassIndices[2]].position;
+    const glm::vec3 &a = pointMasses[face.pointMassIndices[0]].position;
+    const glm::vec3 &b = pointMasses[face.pointMassIndices[1]].position;
+    const glm::vec3 &c = pointMasses[face.pointMassIndices[2]].position;
 
-    float volume = glm::dot(a, glm::cross(b, c)) / 6.0f;
+    const float volume = glm::dot(a, glm::cross(b, c)) / 6.0f;
     restVolume += volume;
 
     // Calculate the inverse mass
-    float mass = volume / 3.0f;
+    const float mass = volume / 3.0f;
     for (unsigned int i = 0; i < 3; i++) {
       pointMasses[face.pointMassIndices[i]].invMass += mass;
     }
@@ -147,7 +149,7 @@ SoftbodyMesh::SoftbodyMesh(const Mesh &mesh) {
   restVolume = std::fabs(restVolume);
 
   // Cap the inverse mass at 4 times the target to prevent instability
-  float targetInvMass = pointMasses.size() / restVolume;
+  const float targetInvMass = pointMasses.size() / restVolume;
   for (auto &pointMass : pointMasses) {
     pointMass.invMass = 1.0f / pointMass.invMass;
     pointMass.invMass =
@@ -158,9 +160,9 @@ SoftbodyMesh::SoftbodyMesh(const Mesh &mesh) {
 float SoftbodyMesh::calculateVolume() const {
   float currentVolume = 0.0f;
   for (const auto &face : faces) {
-    glm::vec3 a = pointMasses[face.pointMassIndices[0]].position;
-    glm::vec3 b = pointMasses[face.pointMassIndices[1]].position;
-    glm::vec3 c = pointMasses[face.pointMassIndices[2]].position;
+    const glm::vec3 &a = pointMasses[face.pointMassIndices[0]].position;
+    const glm::vec3 &b = pointMasses[face.pointMassIndices[1]].position;
+    const glm::vec3 &c = pointMasses[face.pointMassIndices[2]].position;
 
     currentVolume += glm::dot(a, glm::cross(b, c)) / 6.0f;
   }

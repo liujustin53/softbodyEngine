@@ -42,7 +42,7 @@ void SoftbodyObject::update(float deltaTime, Transform &transform) {
   }
 
   // Convert from local to world space
-  glm::mat4 modelMatrix = transform.getModelMatrix();
+  const glm::mat4 modelMatrix = transform.getModelMatrix();
   for (auto &pointMass : _softbodyMesh.pointMasses) {
     pointMass.position = modelMatrix * glm::vec4(pointMass.position, 1.0f);
   }
@@ -61,8 +61,8 @@ void SoftbodyObject::update(float deltaTime, Transform &transform) {
   }
 
   // Run the simulation
-  int iterations = 10;
-  float subTimeStep = deltaTime / iterations;
+  constexpr int iterations = 10;
+  const float subTimeStep = deltaTime / iterations;
   for (int i = 0; i < iterations; i++) {
     preSolve(subTimeStep);
     handleCollision();
@@ -74,13 +74,13 @@ void SoftbodyObject::update(float deltaTime, Transform &transform) {
   }
 
   // Update the transform
-  glm::vec3 oldCenter = transform.getPosition();
-  glm::vec3 center = _softbodyMesh.getCenter();
+  const glm::vec3 oldCenter = transform.getPosition();
+  const glm::vec3 center = _softbodyMesh.getCenter();
   transform.setPosition(center);
 
   // Convert back from world to local space
-  glm::vec3 translation = center - oldCenter;
-  glm::mat4 inverseModelMatrix = glm::inverse(modelMatrix);
+  const glm::vec3 translation = center - oldCenter;
+  const glm::mat4 inverseModelMatrix = glm::inverse(modelMatrix);
   for (auto &pointMass : _softbodyMesh.pointMasses) {
     pointMass.position -= translation;
     pointMass.position =
@@ -96,7 +96,8 @@ void SoftbodyObject::update(float deltaTime, Transform &transform) {
 }
 
 void SoftbodyObject::applyForce(const glm::vec3 &force) {
-  glm::vec3 forcePerPoint = force / (float)_softbodyMesh.pointMasses.size();
+  const glm::vec3 forcePerPoint =
+      force / (float)_softbodyMesh.pointMasses.size();
   for (auto &pointMass : _softbodyMesh.pointMasses) {
     pointMass.velocity += forcePerPoint * pointMass.invMass;
   }
@@ -132,24 +133,24 @@ bool SoftbodyObject::grab(Ray &ray, const glm::mat4 &modelMatrix) {
     b = modelMatrix * glm::vec4(b, 1.0f);
     c = modelMatrix * glm::vec4(c, 1.0f);
 
-    glm::vec3 ab = b - a;
-    glm::vec3 ac = c - a;
-    glm::vec3 normal = glm::cross(ab, ac);
+    const glm::vec3 ab = b - a;
+    const glm::vec3 ac = c - a;
+    const glm::vec3 normal = glm::cross(ab, ac);
 
-    float nDotAMinusRay = glm::dot(normal, a - ray.origin);
-    float nDotRay = glm::dot(normal, ray.dir);
-    float t = nDotAMinusRay / nDotRay;
-    glm::vec3 intersection = ray.origin + ray.dir * t;
+    const float nDotAMinusRay = glm::dot(normal, a - ray.origin);
+    const float nDotRay = glm::dot(normal, ray.dir);
+    const float t = nDotAMinusRay / nDotRay;
+    const glm::vec3 intersection = ray.origin + ray.dir * t;
 
-    glm::vec3 bc = c - b;
-    glm::vec3 ca = a - c;
+    const glm::vec3 bc = c - b;
+    const glm::vec3 ca = a - c;
 
     // Check if the intersection is inside the triangle
     // Check if the cross product of the edge and the intersection point is
     // pointing in the same direction as the normal
-    float dotCrossAB = glm::dot(glm::cross(ab, intersection - a), normal);
-    float dotCrossBC = glm::dot(glm::cross(bc, intersection - b), normal);
-    float dotCrossCA = glm::dot(glm::cross(ca, intersection - c), normal);
+    const float dotCrossAB = glm::dot(glm::cross(ab, intersection - a), normal);
+    const float dotCrossBC = glm::dot(glm::cross(bc, intersection - b), normal);
+    const float dotCrossCA = glm::dot(glm::cross(ca, intersection - c), normal);
 
     if ((dotCrossAB >= 0.0f && dotCrossBC >= 0.0f && dotCrossCA >= 0.0f) ||
         (dotCrossAB <= 0.0f && dotCrossBC <= 0.0f && dotCrossCA <= 0.0f)) {
@@ -171,7 +172,7 @@ bool SoftbodyObject::grab(Ray &ray, const glm::mat4 &modelMatrix) {
 
 void SoftbodyObject::moveGrabbed(float deltaTime) {
   // Simulate 3 distance constraints
-  float distanceAlpha =
+  const float distanceAlpha =
       _softbodyMesh.distanceCompliance / std::pow(deltaTime, 2);
 
   const SoftbodyFace &face = _softbodyMesh.faces[_grabbedFaceIdx];
@@ -180,7 +181,7 @@ void SoftbodyObject::moveGrabbed(float deltaTime) {
   PointMass &c = _softbodyMesh.pointMasses[face.pointMassIndices[2]];
   PointMass grabPoint;
   grabPoint.position = _grabPoint;
-  grabPoint.invMass = 1.0f;
+  grabPoint.invMass = 0.0f;
 
   solveDistanceConstraints(a, grabPoint, _grabRestDistances[0],
                            _grabLengthLambdas[0], distanceAlpha);
@@ -194,7 +195,7 @@ void SoftbodyObject::preSolve(float deltaTime) {
   // Integrate position and velocity
   for (auto &pointMass : _softbodyMesh.pointMasses) {
     // Update velocity
-    glm::vec3 nextVelocity =
+    const glm::vec3 nextVelocity =
         pointMass.velocity + glm::vec3(0.0f, -9.81f, 0.0f) * deltaTime;
 
     // Save the previous position
@@ -207,7 +208,7 @@ void SoftbodyObject::preSolve(float deltaTime) {
 
 void SoftbodyObject::solveConstraints(float deltaTime) {
   // Apply distance constraints
-  float distanceAlpha =
+  const float distanceAlpha =
       _softbodyMesh.distanceCompliance / std::pow(deltaTime, 2);
   for (auto &edge : _softbodyMesh.edges) {
     PointMass &p0 = _softbodyMesh.pointMasses[edge.pointMassIndices[0]];
@@ -223,7 +224,8 @@ void SoftbodyObject::solveConstraints(float deltaTime) {
   // solveBendingConstraints(deltaTime);
 
   // Angles don't work, create a distance constraint between each face instead
-  float bendingAlpha = _softbodyMesh.bendingCompliance / std::pow(deltaTime, 2);
+  const float bendingAlpha =
+      _softbodyMesh.bendingCompliance / std::pow(deltaTime, 2);
   for (auto &edge : _softbodyMesh.edges) {
     PointMass &pL = _softbodyMesh.pointMasses[edge.neighborIndices[0]];
     PointMass &pR = _softbodyMesh.pointMasses[edge.neighborIndices[1]];
@@ -257,7 +259,7 @@ void SoftbodyObject::handleCollision() {
 }
 
 void SoftbodyObject::postSolve(float deltaTime) {
-  float oneOverDeltaTime = 1.0f / deltaTime;
+  const float oneOverDeltaTime = 1.0f / deltaTime;
   // Update the velocity
   for (auto &pointMass : _softbodyMesh.pointMasses) {
     pointMass.velocity =
@@ -276,14 +278,14 @@ void SoftbodyObject::solveDistanceConstraints(PointMass &p0, PointMass &p1,
    * dL = (-C(p0, p1) - Alpha * lambda) / (m0 + m1 + Alpha)
    * deltaP = dL * m0 * dC(p0, p1)/dp0
    */
-  glm::vec3 delta = p0.position - p1.position;
-  float C = glm::length(delta) - restLength;
+  const glm::vec3 delta = p0.position - p1.position;
+  const float C = glm::length(delta) - restLength;
   if (std::fabs(C) < 0.0001f) {
     return;
   }
 
-  glm::vec3 dC = glm::normalize(delta);
-  float deltaLambda =
+  const glm::vec3 dC = glm::normalize(delta);
+  const float deltaLambda =
       (-C - alpha * lambdaLength) / (p0.invMass + p1.invMass + alpha);
   p0.position += deltaLambda * p0.invMass * dC;
   p1.position -= deltaLambda * p1.invMass * dC;
@@ -295,20 +297,20 @@ void SoftbodyObject::solveVolumeConstraint(float deltaTime) {
   float C = _softbodyMesh.calculateVolume() -
             _softbodyMesh.pressure * _softbodyMesh.restVolume;
   // Limit constraint to prevent large changes
-  float maxC = _softbodyMesh.restVolume * 0.1f;
+  const float maxC = _softbodyMesh.restVolume * 0.1f;
   C = std::max(std::min(C, maxC), -maxC);
   if (std::fabs(C) < 0.0001f) {
     return;
   }
 
-  float alpha = _softbodyMesh.volumeCompliance / std::pow(deltaTime, 2);
+  const float alpha = _softbodyMesh.volumeCompliance / std::pow(deltaTime, 2);
 
   // Calculate dC (gradient of the volume constraint function)
   std::vector<glm::vec3> dC(_softbodyMesh.pointMasses.size(), glm::vec3(0.0f));
   for (auto &face : _softbodyMesh.faces) {
-    unsigned int i0 = face.pointMassIndices[0];
-    unsigned int i1 = face.pointMassIndices[1];
-    unsigned int i2 = face.pointMassIndices[2];
+    const unsigned int i0 = face.pointMassIndices[0];
+    const unsigned int i1 = face.pointMassIndices[1];
+    const unsigned int i2 = face.pointMassIndices[2];
     const glm::vec3 &p0 = _softbodyMesh.pointMasses[i0].position;
     const glm::vec3 &p1 = _softbodyMesh.pointMasses[i1].position;
     const glm::vec3 &p2 = _softbodyMesh.pointMasses[i2].position;
@@ -330,7 +332,7 @@ void SoftbodyObject::solveVolumeConstraint(float deltaTime) {
   }
 
   // Calculate delta lambda
-  float deltaLambda = (-C - alpha * _softbodyMesh.lambdaVolume) / denom;
+  const float deltaLambda = (-C - alpha * _softbodyMesh.lambdaVolume) / denom;
   for (int i = 0; i < _softbodyMesh.pointMasses.size(); i++) {
     PointMass &pointMass = _softbodyMesh.pointMasses[i];
     pointMass.position += deltaLambda * pointMass.invMass * dC[i];
@@ -450,7 +452,7 @@ void SoftbodyObject::updateNormals() {
     PointMass &b = _softbodyMesh.pointMasses[face.pointMassIndices[1]];
     PointMass &c = _softbodyMesh.pointMasses[face.pointMassIndices[2]];
 
-    glm::vec3 normal =
+    const glm::vec3 normal =
         glm::cross(b.position - a.position, c.position - a.position);
 
     a.normal += normal;
