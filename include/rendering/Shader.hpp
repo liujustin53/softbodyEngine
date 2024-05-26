@@ -13,6 +13,7 @@ public:
 
   Shader() = default;
   Shader(const std::string &vertexPath, const std::string &fragmentPath);
+  Shader(const std::string &computePath);
   ~Shader() { glDeleteProgram(id); }
 
   void load(const std::string &vertexPath, const std::string &fragmentPath);

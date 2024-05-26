@@ -49,3 +49,5 @@ GLuint compileShader(GLuint type, const std::string &source);
  */
 GLuint createShaderProgram(const std::string &vertexShaderSource,
                            const std::string &fragmentShaderSource);
+
+GLuint createComputeShaderProgram(const std::string &computeShaderSource);

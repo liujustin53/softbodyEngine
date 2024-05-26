@@ -24,15 +24,7 @@ std::string loadShaderAsString(const std::string &filename) {
 
 GLuint compileShader(GLuint type, const std::string &source) {
   // Compile our shaders
-  GLuint shaderObject;
-
-  // Based on the type passed in, we create a shader object specifically for
-  // that type.
-  if (type == GL_VERTEX_SHADER) {
-    shaderObject = glCreateShader(GL_VERTEX_SHADER);
-  } else if (type == GL_FRAGMENT_SHADER) {
-    shaderObject = glCreateShader(GL_FRAGMENT_SHADER);
-  }
+  GLuint shaderObject = glCreateShader(type);
 
   const char *src = source.c_str();
   // The source of our shader
@@ -56,6 +48,9 @@ GLuint compileShader(GLuint type, const std::string &source) {
                 << errorMessages << "\n";
     } else if (type == GL_FRAGMENT_SHADER) {
       std::cout << "ERROR: GL_FRAGMENT_SHADER compilation failed!\n"
+                << errorMessages << "\n";
+    } else if (type == GL_COMPUTE_SHADER) {
+      std::cout << "ERROR: GL_COMPUTE_SHADER compilation failed!\n"
                 << errorMessages << "\n";
     }
     // Reclaim our memory
@@ -100,4 +95,17 @@ GLuint createShaderProgram(const std::string &vertexShaderSource,
   glDeleteShader(myFragmentShader);
 
   return programObject;
+}
+
+GLuint createComputeShaderProgram(const std::string &computeShaderSource) {
+  GLuint program = glCreateProgram();
+  GLuint shader = compileShader(GL_COMPUTE_SHADER, computeShaderSource);
+
+  glAttachShader(program, shader);
+  glLinkProgram(program);
+  glValidateProgram(program);
+  glDetachShader(program, shader);
+  glDeleteShader(shader);
+
+  return program;
 }
