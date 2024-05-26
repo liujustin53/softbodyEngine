@@ -15,7 +15,7 @@ Window::Window(int width, int height, const std::string &title)
   // Setup the OpenGL Context
   // Use OpenGL 4.1 core or greater
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   // We want to request a double buffer for smooth updating.
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);

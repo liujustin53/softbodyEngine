@@ -79,7 +79,7 @@ void VertexBufferLayout::createSoftBodyBufferLayout(
 
   glGenBuffers(1, &_ebo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces.size() * sizeof(SoftbodyFace) * 3,
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces.size() * sizeof(SoftbodyFace),
                faces.data(), GL_STATIC_DRAW);
 
   // position
